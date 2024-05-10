@@ -1,25 +1,15 @@
--- creates a stored procedure AddBonus
--- adds a new correction for a student
-DROP PROCEDURE IF EXISTS AddBonus;
+-- creates a trigger that resets the attribute valid_email
+-- only when the email has been changed
+DROP TRIGGER IF EXISTS validate_email;
 DELIMITER $$
-CREATE PROCEDURE AddBonus (user_id INT, project_name VARCHAR(255), score FLOAT)
+CREATE TRIGGER validate_email
+BEFORE UPDATE ON users
+FOR EACH ROW
 BEGIN
-    DECLARE project_count INT DEFAULT 0;
-    DECLARE project_id INT DEFAULT 0;
-
-    SELECT COUNT(id)
-        INTO project_count
-        FROM projects
-        WHERE name = project_name;
-    IF project_count = 0 THEN
-        INSERT INTO projects(name)
-            VALUES(project_name);
+    IF OLD.email != NEW.email THEN
+        SET NEW.valid_email = 0;
+    ELSE
+        SET NEW.valid_email = NEW.valid_email;
     END IF;
-    SELECT id
-        INTO project_id
-        FROM projects
-        WHERE name = project_name;
-    INSERT INTO corrections(user_id, project_id, score)
-        VALUES (user_id, project_id, score);
 END $$
 DELIMITER ;
